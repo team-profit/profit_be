@@ -7,7 +7,6 @@ const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 const mongoose = require('mongoose');
 
-
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3000;
@@ -34,12 +33,15 @@ const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
 });
+
 app.use(limiter);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// app.use('/todo', todoRoutes);
+app.use(require('./routes/authRoutes'));
+app.use('/deliveries', require('./routes/deliveryRoutes'));
+app.use('/calendar', require('./routes/calendarRoutes'));
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Not Found' });
