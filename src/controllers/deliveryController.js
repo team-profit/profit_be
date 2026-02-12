@@ -2,13 +2,20 @@ const { default: mongoose } = require('mongoose');
 const Delivery = require('../models/Delivery');
 const getNextSequence = require('../services/getNextSequence');
 
+// 한국 시간(KST, UTC+9)을 반환하는 헬퍼 함수
+const getKoreanTime = (date = new Date()) => {
+  const kstOffset = 9 * 60 * 60 * 1000; // 9시간을 밀리초로
+  return new Date(date.getTime() + kstOffset);
+};
+
 // 오늘 리스트
 exports.getTodayList = async (req, res) => {
   try {
-    const start = new Date();
+    const now = getKoreanTime();
+    const start = new Date(now);
     start.setHours(0, 0, 0, 0);
 
-    const end = new Date();
+    const end = new Date(now);
     end.setHours(23, 59, 59, 999);
 
     const deliveries = await Delivery.find({
@@ -87,7 +94,7 @@ exports.createDelivery = async (req, res) => {
         totalExpenseAmount,
         netProfit,
         dateAndTime: {
-          startDateAndTime: new Date(),
+          startDateAndTime: getKoreanTime(), // 한국 시간으로 생성
         },
       },
       shipperInfo,
@@ -131,7 +138,7 @@ exports.updateDelivery = async (req, res) => {
     if (transportInfo.isTransportCompleted) {
       updateData.transportInfo.dateAndTime = {
         ...transportInfo.dateAndTime,
-        endDateAndTime: new Date(),
+        endDateAndTime: getKoreanTime(), // 한국 시간으로 생성
       };
     }
 
@@ -233,7 +240,7 @@ exports.cancelCollect = async (req, res) => {
 // 운송 완료
 exports.completeTransport = async (req, res) => {
   try {
-    const now = new Date();
+    const now = getKoreanTime(); // 한국 시간으로 생성
 
     const delivery = await Delivery.findOneAndUpdate(
       { deliveryId: Number(req.params.deliveryId) },
