@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(helmet());
 
-const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:3000'];
+const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:5173'];
 
 app.use(
   cors({
