@@ -22,14 +22,8 @@ exports.getTodayList = async (req, res) => {
       deliveryId: d.deliveryId,
       place: d.transportInfo.loadingLocation.address,
       time: {
-        startTime: d.transportInfo.dateAndTime.startDateAndTime
-          ?.toISOString()
-          .split('T')[1]
-          .substring(0, 5),
-        endTime: d.transportInfo.dateAndTime.endDateAndTime
-          ?.toISOString()
-          .split('T')[1]
-          .substring(0, 5),
+        startTime: d.transportInfo.dateAndTime.startDateAndTime,
+        endTime: d.transportInfo.dateAndTime.endDateAndTime,
       },
     }));
 
