@@ -7,11 +7,13 @@ exports.getCalendarData = async (req, res) => {
     const result = {};
 
     deliveries.forEach((d) => {
-      const date = d.transportInfo?.dateAndTime?.startDateAndTime;
-      if (!date) return;
+      const dateObj = d.transportInfo?.dateAndTime?.startDateAndTime;
+      if (!dateObj) return;
 
-      const ym = date.toISOString().slice(0, 7);
+      const ym = dateObj.toISOString().slice(0, 7); // 2025-12
+      const day = dateObj.toISOString().slice(0, 10); // 2025-12-12
 
+      // 월별 초기화
       if (!result[ym]) {
         result[ym] = {
           summary: {
@@ -19,16 +21,37 @@ exports.getCalendarData = async (req, res) => {
             receivedAmount: 0,
             totalExpenseAmount: 0,
           },
+          dailySummary: {}, // 일별 summary
           deliveries: [],
         };
       }
 
-      result[ym].summary.netProfit += d.transportInfo.netProfit;
-      result[ym].summary.receivedAmount += d.transportInfo.receivedAmount;
-      result[ym].summary.totalExpenseAmount +=
+      const monthData = result[ym];
+
+      // 월별 summary 누적
+      monthData.summary.netProfit += d.transportInfo.netProfit;
+      monthData.summary.receivedAmount += d.transportInfo.receivedAmount;
+      monthData.summary.totalExpenseAmount +=
         d.transportInfo.totalExpenseAmount;
 
-      result[ym].deliveries.push({
+      // 일별 summary 초기화
+      if (!monthData.dailySummary[day]) {
+        monthData.dailySummary[day] = {
+          netProfit: 0,
+          receivedAmount: 0,
+          totalExpenseAmount: 0,
+        };
+      }
+
+      // 일별 summary 누적
+      monthData.dailySummary[day].netProfit += d.transportInfo.netProfit;
+      monthData.dailySummary[day].receivedAmount +=
+        d.transportInfo.receivedAmount;
+      monthData.dailySummary[day].totalExpenseAmount +=
+        d.transportInfo.totalExpenseAmount;
+
+      // deliveries 배열에 추가
+      monthData.deliveries.push({
         deliveryId: d.deliveryId,
         place: d.transportInfo.loadingLocation.address,
         dateAndTime: d.transportInfo.dateAndTime,
@@ -37,6 +60,7 @@ exports.getCalendarData = async (req, res) => {
 
     return res.json(result);
   } catch (error) {
+    console.error(error);
     return res
       .status(500)
       .json({ message: '캘린더 데이터를 불러오는 중 오류가 발생했습니다' });
